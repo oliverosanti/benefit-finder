@@ -12,13 +12,13 @@ export const Hero = () => (
       </div>
       <div className="relative max-w-2xl">
         <span className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-          <Sparkles className="w-3.5 h-3.5" /> Beneficios destacados del mes
+          <Sparkles className="w-3.5 h-3.5" /> Downtown Greenville
         </span>
         <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-3">
-          ¡Aprovechá los <em className="not-italic text-accent">beneficios</em> destacados!
+          ¡Aprovechá los <em className="not-italic text-accent">beneficios</em> de Downtown Greenville!
         </h1>
         <p className="text-white/90 text-base md:text-lg">
-          Descuentos exclusivos en tus marcas favoritas. Copiá tu cupón y empezá a ahorrar.
+          Descuentos exclusivos en los mejores comercios de Greenville. Copiá tu cupón y empezá a ahorrar.
         </p>
       </div>
     </div>

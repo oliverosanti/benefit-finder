@@ -23,7 +23,7 @@ export const Header = ({ search, onSearchChange }: HeaderProps) => {
               <Tag className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-lg font-bold tracking-tight hidden sm:inline">
-              Cupones<span className="text-primary">&Beneficios</span>
+              Downtown<span className="text-primary"> Greenville</span>
             </span>
           </Link>
 
