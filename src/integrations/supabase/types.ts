@@ -16,44 +16,62 @@ export type Database = {
     Tables: {
       benefits: {
         Row: {
+          brand_about: string | null
           brand_id: string
           category_id: string | null
           created_at: string
           description: string | null
           discount_badge: string
+          discount_tiers: Json
           expiry_date: string
+          hero_image_url: string | null
           id: string
+          instructions: string | null
           is_featured: boolean
           promo_code: string
+          slug: string | null
           target_url: string
+          terms: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          brand_about?: string | null
           brand_id: string
           category_id?: string | null
           created_at?: string
           description?: string | null
           discount_badge: string
+          discount_tiers?: Json
           expiry_date: string
+          hero_image_url?: string | null
           id?: string
+          instructions?: string | null
           is_featured?: boolean
           promo_code: string
+          slug?: string | null
           target_url: string
+          terms?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          brand_about?: string | null
           brand_id?: string
           category_id?: string | null
           created_at?: string
           description?: string | null
           discount_badge?: string
+          discount_tiers?: Json
           expiry_date?: string
+          hero_image_url?: string | null
           id?: string
+          instructions?: string | null
           is_featured?: boolean
           promo_code?: string
+          slug?: string | null
           target_url?: string
+          terms?: string | null
           title?: string
           updated_at?: string
         }
