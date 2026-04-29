@@ -7,6 +7,7 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
 import Admin from "./pages/Admin.tsx";
+import BenefitDetail from "./pages/BenefitDetail.tsx";
 import { ProtectedAdmin } from "./components/ProtectedAdmin.tsx";
 
 const queryClient = new QueryClient();
@@ -19,6 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/c/:slug" element={<BenefitDetail />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<ProtectedAdmin><Admin /></ProtectedAdmin>} />
           <Route path="*" element={<NotFound />} />
