@@ -21,7 +21,7 @@ const Index = () => {
         supabase
           .from("benefits")
           .select(
-            "id,title,description,discount_badge,promo_code,target_url,expiry_date,is_featured,category_id," +
+            "id,slug,title,description,discount_badge,promo_code,target_url,expiry_date,is_featured,category_id," +
               "brand:brands(name,logo_url),category:categories(name)"
           )
           .gt("expiry_date", new Date().toISOString())
