@@ -211,19 +211,47 @@ export const BenefitsManager = () => {
               <div><Label>Bases y condiciones</Label><Textarea rows={3} value={form.terms} onChange={(e) => setForm({ ...form, terms: e.target.value })} /></div>
               <div><Label>Sobre la marca</Label><Textarea rows={3} value={form.brand_about} onChange={(e) => setForm({ ...form, brand_about: e.target.value })} /></div>
 
-              {/* Tiers */}
+              {/* Condiciones / tiers */}
               <div className="border-t border-border pt-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
                   <div>
-                    <Label>Tiers de descuento (opcional)</Label>
-                    <p className="text-xs text-muted-foreground">Ej. Propietarios 50%, Invitados 25%, Otros 10%. Si está vacío se usa el badge.</p>
+                    <Label>Condiciones del beneficio</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Cargá una opción por cada tipo de usuario habilitado (ej. Residentes 50%, Vecinos 25%, Invitados 10%). Si solo querés habilitar una condición, agregá una sola fila.
+                    </p>
                   </div>
-                  <Button type="button" size="sm" variant="outline" onClick={addTier}><Plus className="w-3.5 h-3.5 mr-1" />Agregar</Button>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button type="button" size="sm" variant="outline" onClick={addTier}>
+                      <Plus className="w-3.5 h-3.5 mr-1" />Agregar
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          discount_tiers: [
+                            { label: "Residentes", value: "", promo_code: "" },
+                            { label: "Vecinos", value: "", promo_code: "" },
+                            { label: "Invitados", value: "", promo_code: "" },
+                          ],
+                        })
+                      }
+                    >
+                      Usar preset (Res/Vec/Inv)
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2">
+                  {form.discount_tiers.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">
+                      Sin condiciones cargadas — se usará el descuento general del cupón.
+                    </p>
+                  )}
                   {form.discount_tiers.map((t, i) => (
                     <div key={i} className="grid grid-cols-[1fr_120px_1fr_auto] gap-2 items-center">
-                      <Input placeholder="Etiqueta (Propietarios)" value={t.label} onChange={(e) => updateTier(i, { label: e.target.value })} />
+                      <Input placeholder="Condición (ej. Residentes)" value={t.label} onChange={(e) => updateTier(i, { label: e.target.value })} />
                       <Input placeholder="50%" value={t.value} onChange={(e) => updateTier(i, { value: e.target.value })} />
                       <Input placeholder="Código (opcional)" value={t.promo_code ?? ""} onChange={(e) => updateTier(i, { promo_code: e.target.value })} />
                       <Button type="button" variant="ghost" size="icon" onClick={() => removeTier(i)}><X className="w-4 h-4" /></Button>
