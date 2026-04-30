@@ -370,23 +370,6 @@ const BenefitDetail = () => {
                 </div>
               )}
             </div>
-
-              <Button
-                onClick={handleClaim}
-                size="lg"
-                className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-full h-12 text-base font-semibold"
-              >
-                Quiero este beneficio
-              </Button>
-
-              <div className="flex items-center justify-between gap-2 text-sm bg-muted/60 rounded-xl px-3 py-2 border border-dashed border-border">
-                <span className="font-mono font-bold tracking-wider truncate">{code}</span>
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <Copy className="w-3.5 h-3.5" /> al hacer clic
-                  <ExternalLink className="w-3.5 h-3.5 ml-1" />
-                </span>
-              </div>
-            </div>
           </div>
         </aside>
       </div>
