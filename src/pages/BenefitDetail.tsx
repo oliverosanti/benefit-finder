@@ -40,7 +40,7 @@ const BenefitDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [b, setB] = useState<BenefitDetailData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTier, setActiveTier] = useState(0);
+  const [activeTier, setActiveTier] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
