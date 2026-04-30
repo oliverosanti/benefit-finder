@@ -314,11 +314,9 @@ const BenefitDetail = () => {
 
             {/* Tiers de descuento */}
             <div className="p-5 space-y-2">
-              {tiers.length > 1 && (
-                <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                  Elegí tu beneficio
-                </p>
-              )}
+              <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                Elegí tu condición
+              </p>
               {tiers.map((t, i) => {
                 const active = i === activeTier;
                 return (
@@ -348,6 +346,30 @@ const BenefitDetail = () => {
                 <Globe className="w-3.5 h-3.5" />
                 Online
               </div>
+
+              <Button
+                onClick={handleClaim}
+                disabled={activeTier === null}
+                size="lg"
+                className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-full h-12 text-base font-semibold disabled:opacity-50"
+              >
+                Quiero este beneficio
+              </Button>
+              {activeTier === null && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Seleccioná una opción para descargar tu cupón
+                </p>
+              )}
+
+              {currentTier && (
+                <div className="flex items-center justify-between gap-2 text-sm bg-muted/60 rounded-xl px-3 py-2 border border-dashed border-border">
+                  <span className="font-mono font-bold tracking-wider truncate">{code}</span>
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Copy className="w-3.5 h-3.5" /> se descarga la imagen
+                  </span>
+                </div>
+              )}
+            </div>
 
               <Button
                 onClick={handleClaim}
