@@ -42,6 +42,13 @@ const BenefitDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeTier, setActiveTier] = useState<number | null>(null);
 
+  // Si el cupón tiene una sola condición habilitada, la pre-seleccionamos.
+  useEffect(() => {
+    if (!b) return;
+    const t = Array.isArray(b.discount_tiers) ? b.discount_tiers : [];
+    if (t.length <= 1) setActiveTier(0);
+  }, [b]);
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase
