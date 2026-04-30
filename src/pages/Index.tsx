@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
-import { Hero } from "@/components/Hero";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import { CategoryCarousel, CategoryData } from "@/components/CategoryCarousel";
 import { BenefitCard, BenefitCardData } from "@/components/BenefitCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,7 +54,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header search={search} onSearchChange={setSearch} />
-      <Hero />
+      <HeroCarousel />
       <CategoryCarousel categories={categories} selected={selectedCat} onSelect={setSelectedCat} />
 
       {/* Destacados */}
