@@ -40,7 +40,7 @@ const BenefitDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [b, setB] = useState<BenefitDetailData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTier, setActiveTier] = useState(0);
+  const [activeTier, setActiveTier] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -86,18 +86,136 @@ const BenefitDetail = () => {
       ? b.discount_tiers
       : [{ label: "Descuento", value: b.discount_badge, promo_code: b.promo_code }];
 
-  const currentTier = tiers[activeTier] ?? tiers[0];
-  const code = currentTier.promo_code || b.promo_code;
+  const currentTier = activeTier !== null ? tiers[activeTier] : null;
+  const code = currentTier?.promo_code || b.promo_code;
+
+  // Carga una imagen como HTMLImageElement (con CORS) y la devuelve, o null si falla.
+  const loadImage = (src: string): Promise<HTMLImageElement | null> =>
+    new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+
+  const generateCouponImage = async (tier: DiscountTier) => {
+    const W = 1200;
+    const H = 630;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    // Fondo con gradiente usando el primary de la marca
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, "#0f172a");
+    grad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Acento decorativo
+    ctx.fillStyle = "rgba(34,197,94,0.15)";
+    ctx.beginPath();
+    ctx.arc(W - 80, 80, 220, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tarjeta interna
+    const pad = 60;
+    ctx.fillStyle = "#ffffff";
+    const cardX = pad;
+    const cardY = pad;
+    const cardW = W - pad * 2;
+    const cardH = H - pad * 2;
+    const r = 32;
+    ctx.beginPath();
+    ctx.moveTo(cardX + r, cardY);
+    ctx.arcTo(cardX + cardW, cardY, cardX + cardW, cardY + cardH, r);
+    ctx.arcTo(cardX + cardW, cardY + cardH, cardX, cardY + cardH, r);
+    ctx.arcTo(cardX, cardY + cardH, cardX, cardY, r);
+    ctx.arcTo(cardX, cardY, cardX + cardW, cardY, r);
+    ctx.closePath();
+    ctx.fill();
+
+    // Logo
+    if (b.brand.logo_url) {
+      const logo = await loadImage(b.brand.logo_url);
+      if (logo) {
+        const maxW = 280;
+        const maxH = 140;
+        const ratio = Math.min(maxW / logo.width, maxH / logo.height);
+        const lw = logo.width * ratio;
+        const lh = logo.height * ratio;
+        ctx.drawImage(logo, cardX + 60, cardY + 60, lw, lh);
+      }
+    }
+
+    // Nombre de la marca
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "bold 36px system-ui, -apple-system, sans-serif";
+    ctx.fillText(b.brand.name, cardX + 60, cardY + 240);
+
+    // Tipo de usuario (chip)
+    const chipText = tier.label.toUpperCase();
+    ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+    const chipPadX = 22;
+    const chipH = 44;
+    const chipW = ctx.measureText(chipText).width + chipPadX * 2;
+    const chipX = cardX + 60;
+    const chipY = cardY + 270;
+    ctx.fillStyle = "#16a34a";
+    ctx.beginPath();
+    ctx.roundRect(chipX, chipY, chipW, chipH, 22);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(chipText, chipX + chipPadX, chipY + 30);
+
+    // Descuento gigante
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "900 200px system-ui, -apple-system, sans-serif";
+    ctx.fillText(tier.value, cardX + 60, cardY + cardH - 110);
+
+    // Subtítulo "DE DESCUENTO"
+    ctx.fillStyle = "#64748b";
+    ctx.font = "bold 28px system-ui, -apple-system, sans-serif";
+    ctx.fillText("DE DESCUENTO", cardX + 60, cardY + cardH - 60);
+
+    // Código en esquina inferior derecha
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "bold 24px ui-monospace, SFMono-Regular, Menlo, monospace";
+    const codeText = `CÓDIGO: ${tier.promo_code || b.promo_code}`;
+    const codeW = ctx.measureText(codeText).width;
+    ctx.fillText(codeText, cardX + cardW - codeW - 60, cardY + cardH - 60);
+
+    return canvas.toDataURL("image/png");
+  };
 
   const handleClaim = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      toast.success("¡Código copiado!", {
-        description: `${code} — abriendo ${b.brand.name}…`,
+    if (activeTier === null || !currentTier) {
+      toast.error("Elegí una opción", {
+        description: "Seleccioná si sos residente, vecino o invitado.",
       });
-      window.open(b.target_url, "_blank", "noopener,noreferrer");
-    } catch {
-      toast.error("No se pudo copiar el código");
+      return;
+    }
+
+    try {
+      const dataUrl = await generateCouponImage(currentTier);
+      if (dataUrl) {
+        const link = document.createElement("a");
+        const safeBrand = b.brand.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+        const safeTier = currentTier.label.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+        link.download = `cupon-${safeBrand}-${safeTier}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
+
+      await navigator.clipboard.writeText(code).catch(() => {});
+      toast.success("¡Beneficio descargado!", {
+        description: `${currentTier.label} · ${currentTier.value} — código copiado`,
+      });
+    } catch (e) {
+      toast.error("No se pudo generar la imagen del cupón");
     }
   };
 
@@ -196,11 +314,9 @@ const BenefitDetail = () => {
 
             {/* Tiers de descuento */}
             <div className="p-5 space-y-2">
-              {tiers.length > 1 && (
-                <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground mb-1">
-                  Elegí tu beneficio
-                </p>
-              )}
+              <p className="text-xs uppercase tracking-wide font-semibold text-muted-foreground mb-1">
+                Elegí tu condición
+              </p>
               {tiers.map((t, i) => {
                 const active = i === activeTier;
                 return (
@@ -233,19 +349,26 @@ const BenefitDetail = () => {
 
               <Button
                 onClick={handleClaim}
+                disabled={activeTier === null}
                 size="lg"
-                className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-full h-12 text-base font-semibold"
+                className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-full h-12 text-base font-semibold disabled:opacity-50"
               >
                 Quiero este beneficio
               </Button>
+              {activeTier === null && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Seleccioná una opción para descargar tu cupón
+                </p>
+              )}
 
-              <div className="flex items-center justify-between gap-2 text-sm bg-muted/60 rounded-xl px-3 py-2 border border-dashed border-border">
-                <span className="font-mono font-bold tracking-wider truncate">{code}</span>
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <Copy className="w-3.5 h-3.5" /> al hacer clic
-                  <ExternalLink className="w-3.5 h-3.5 ml-1" />
-                </span>
-              </div>
+              {currentTier && (
+                <div className="flex items-center justify-between gap-2 text-sm bg-muted/60 rounded-xl px-3 py-2 border border-dashed border-border">
+                  <span className="font-mono font-bold tracking-wider truncate">{code}</span>
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Copy className="w-3.5 h-3.5" /> se descarga la imagen
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </aside>
