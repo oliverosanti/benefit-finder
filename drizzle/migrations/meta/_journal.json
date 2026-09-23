@@ -8,6 +8,13 @@
       "when": 1790168980121,
       "tag": "0000_restore_public_catalog_read_access",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790169016540,
+      "tag": "0001_fix_public_banners_and_benefit_link",
+      "breakpoints": true
     }
   ]
 }
