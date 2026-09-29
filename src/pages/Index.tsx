@@ -54,7 +54,7 @@ const Index = () => {
           .order("created_at", { ascending: false }),
       ]);
       setCategories((cats as CategoryData[]) ?? []);
-      setBenefits((bens as BenefitWithCategory[]) ?? []);
+      setBenefits((bens as unknown as BenefitWithCategory[]) ?? []);
       setLoading(false);
     };
     load();
