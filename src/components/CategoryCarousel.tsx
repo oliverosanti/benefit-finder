@@ -2,11 +2,13 @@ import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as Icons from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export interface CategoryData {
   id: string;
   name: string;
   icon: string;
+  sort_order?: number;
 }
 
 interface Props {
@@ -33,17 +35,17 @@ export const CategoryCarousel = ({ categories, selected, onSelect }: Props) => {
           <h2 className="text-2xl md:text-3xl font-bold">Explorá por categoría</h2>
           <p className="text-muted-foreground text-sm mt-1">Filtrá los beneficios por rubro</p>
         </div>
-        <div className="hidden md:flex gap-2">
-          <button onClick={() => scrollBy(-1)} className="w-10 h-10 rounded-full bg-card border border-border hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Anterior">
+        <div className="flex gap-2 md:hidden">
+          <Button variant="outline" size="icon" onClick={() => scrollBy(-1)} className="rounded-full" aria-label="Anterior">
             <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button onClick={() => scrollBy(1)} className="w-10 h-10 rounded-full bg-card border border-border hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Siguiente">
+          </Button>
+          <Button variant="outline" size="icon" onClick={() => scrollBy(1)} className="rounded-full" aria-label="Siguiente">
             <ChevronRight className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2 md:mx-0 md:flex-wrap md:justify-center md:overflow-visible md:px-0">
         <CategoryPill
           icon={<Icons.LayoutGrid className="w-7 h-7" />}
           label="Todos"
@@ -75,12 +77,10 @@ const CategoryPill = ({
   active: boolean;
   onClick: () => void;
 }) => (
-  <button
+  <Button
+    variant="ghost"
     onClick={onClick}
-    className={cn(
-      "shrink-0 flex flex-col items-center gap-2 w-24 group",
-      "transition-transform hover:-translate-y-0.5"
-    )}
+    className="group h-auto w-24 shrink-0 flex-col gap-2 whitespace-normal p-0 transition-transform hover:-translate-y-0.5 hover:bg-transparent"
   >
     <span
       className={cn(
@@ -100,5 +100,5 @@ const CategoryPill = ({
     >
       {label}
     </span>
-  </button>
+  </Button>
 );
