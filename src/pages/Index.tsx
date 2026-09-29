@@ -117,7 +117,7 @@ const Index = () => {
           <h2 className="text-2xl md:text-3xl font-bold">
             {search ? `Resultados para "${search}"` : selectedCat ? "Beneficios de la categoría" : "Beneficios por categoría"}
           </h2>
-          <span className="text-sm text-muted-foreground">{filtered.length} beneficios</span>
+          <span className="text-sm text-muted-foreground">{regularBenefits.length} beneficios</span>
         </div>
 
         {loading ? (
