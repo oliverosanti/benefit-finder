@@ -4,20 +4,45 @@ import { Header } from "@/components/Header";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { CategoryCarousel, CategoryData } from "@/components/CategoryCarousel";
 import { BenefitCard, BenefitCardData } from "@/components/BenefitCard";
+import { CompactBenefitCard } from "@/components/CompactBenefitCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Tag } from "lucide-react";
+import * as Icons from "lucide-react";
+
+type BenefitWithCategory = BenefitCardData & {
+  is_featured: boolean;
+  category_id: string | null;
+};
+
+const discountScore = (benefit: BenefitCardData) => {
+  const badge = benefit.discount_badge.toLowerCase();
+  if (badge.includes("gratis")) return 100;
+  const deal = badge.match(/(\d+)\s*x\s*(\d+)/);
+  if (deal) {
+    const take = Number(deal[1]);
+    const pay = Number(deal[2]);
+    if (take > 0 && take > pay) return ((take - pay) / take) * 100;
+  }
+  const percentage = badge.match(/(\d+(?:[.,]\d+)?)\s*%/);
+  return percentage ? Number(percentage[1].replace(",", ".")) : 0;
+};
+
+const categoryIcon = (name?: string) => {
+  const Icon = ((Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[name ?? ""] ?? Tag);
+  return <Icon className="h-5 w-5" />;
+};
 
 const Index = () => {
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [benefits, setBenefits] = useState<BenefitCardData[]>([]);
+  const [benefits, setBenefits] = useState<BenefitWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       const [{ data: cats }, { data: bens }] = await Promise.all([
-        supabase.from("categories").select("id,name,icon").order("sort_order"),
+        supabase.from("categories").select("id,name,icon,sort_order").order("sort_order").order("name"),
         supabase
           .from("benefits")
           .select(
@@ -29,7 +54,7 @@ const Index = () => {
           .order("created_at", { ascending: false }),
       ]);
       setCategories((cats as CategoryData[]) ?? []);
-      setBenefits((bens as any) ?? []);
+      setBenefits((bens as unknown as BenefitWithCategory[]) ?? []);
       setLoading(false);
     };
     load();
@@ -37,7 +62,7 @@ const Index = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return benefits.filter((b: any) => {
+    return benefits.filter((b) => {
       if (selectedCat && b.category_id !== selectedCat) return false;
       if (!q) return true;
       return (
@@ -49,7 +74,22 @@ const Index = () => {
     });
   }, [benefits, search, selectedCat]);
 
-  const featured = filtered.filter((b: any) => b.is_featured);
+  const featured = filtered
+    .filter((b) => b.is_featured)
+    .sort((a, b) => discountScore(b) - discountScore(a));
+
+  const regularBenefits = !search && !selectedCat
+    ? filtered.filter((benefit) => !benefit.is_featured)
+    : filtered;
+
+  const groupedBenefits = categories
+    .map((category) => ({
+      category,
+      benefits: regularBenefits.filter((benefit) => benefit.category_id === category.id),
+    }))
+    .filter((group) => group.benefits.length > 0);
+
+  const uncategorized = regularBenefits.filter((benefit) => !benefit.category_id);
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,30 +112,51 @@ const Index = () => {
         </section>
       )}
 
-      {/* Todos */}
       <section id="descuentos" className="container mx-auto px-4 py-8">
         <div className="flex items-end justify-between mb-5">
           <h2 className="text-2xl md:text-3xl font-bold">
-            {search ? `Resultados para "${search}"` : selectedCat ? "Filtrado" : "Todos los descuentos"}
+            {search ? `Resultados para "${search}"` : selectedCat ? "Beneficios de la categoría" : "Beneficios por categoría"}
           </h2>
-          <span className="text-sm text-muted-foreground">{filtered.length} beneficios</span>
+          <span className="text-sm text-muted-foreground">{regularBenefits.length} beneficios</span>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
             {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-80 rounded-2xl" />
+              <Skeleton key={i} className="h-28 rounded-lg" />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : regularBenefits.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
             No encontramos beneficios con esos criterios.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filtered.map((b) => (
-              <BenefitCard key={b.id} benefit={b} />
+          <div className="space-y-9">
+            {groupedBenefits.map(({ category, benefits: categoryBenefits }) => (
+              <section key={category.id} aria-labelledby={`category-${category.id}`}>
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                    {categoryIcon(category.icon)}
+                  </span>
+                  <h3 id={`category-${category.id}`} className="text-xl font-bold">{category.name}</h3>
+                  <span className="text-xs text-muted-foreground">{categoryBenefits.length}</span>
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                  {categoryBenefits.map((benefit) => <CompactBenefitCard key={benefit.id} benefit={benefit} />)}
+                </div>
+              </section>
             ))}
+            {uncategorized.length > 0 && (
+              <section aria-labelledby="category-other">
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-secondary-foreground"><Tag className="h-5 w-5" /></span>
+                  <h3 id="category-other" className="text-xl font-bold">Otros</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                  {uncategorized.map((benefit) => <CompactBenefitCard key={benefit.id} benefit={benefit} />)}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </section>

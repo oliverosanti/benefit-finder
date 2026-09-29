@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BrandsManager } from "@/components/admin/BrandsManager";
 import { BenefitsManager } from "@/components/admin/BenefitsManager";
 import { BannersManager } from "@/components/admin/BannersManager";
+import { CategoriesManager } from "@/components/admin/CategoriesManager";
 import { useAuth } from "@/hooks/useAuth";
 
 const Admin = () => {
@@ -37,10 +38,12 @@ const Admin = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="benefits">Beneficios</TabsTrigger>
             <TabsTrigger value="brands">Marcas</TabsTrigger>
+            <TabsTrigger value="categories">Categorías</TabsTrigger>
             <TabsTrigger value="banners">Banners</TabsTrigger>
           </TabsList>
           <TabsContent value="benefits"><BenefitsManager /></TabsContent>
           <TabsContent value="brands"><BrandsManager /></TabsContent>
+          <TabsContent value="categories"><CategoriesManager /></TabsContent>
           <TabsContent value="banners"><BannersManager /></TabsContent>
         </Tabs>
       </main>
