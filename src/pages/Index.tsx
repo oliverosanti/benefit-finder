@@ -8,6 +8,8 @@ import { CompactBenefitCard } from "@/components/CompactBenefitCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles, Tag } from "lucide-react";
 import * as Icons from "lucide-react";
+import { useWebMCP } from "use-webmcp-tool";
+import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
 type BenefitWithCategory = BenefitCardData & {
   is_featured: boolean;
@@ -90,6 +92,54 @@ const Index = () => {
     .filter((group) => group.benefits.length > 0);
 
   const uncategorized = regularBenefits.filter((benefit) => !benefit.category_id);
+
+  useWebMCP({
+    name: "list_visible_benefits",
+    description: "List the coupons currently shown on the home page, respecting the active search and category.",
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    execute: () =>
+      runWebMCPTool("list_visible_benefits", () => {
+        if (loading) return "Benefits are still loading.";
+        return filtered.length === 0
+          ? "No benefits shown."
+          : filtered.map((b) => `${b.slug || b.id}: ${b.brand?.name ?? ""} — ${b.title} (${b.discount_badge})`).join("\n");
+      }),
+  });
+
+  useWebMCP({
+    name: "search_benefits",
+    description: "Type a search into the home page search box to filter the coupons shown.",
+    inputSchema: {
+      type: "object",
+      properties: { query: { type: "string", description: "Search text; empty string clears the search." } },
+      required: ["query"],
+    },
+    execute: ({ query }: { query: string }) =>
+      runWebMCPTool("search_benefits", () => {
+        if (typeof query !== "string") throw new Error("query must be a string.");
+        setSearch(query);
+        return query ? "Search updated." : "Search cleared.";
+      }),
+  });
+
+  useWebMCP({
+    name: "filter_by_category",
+    description: "Show only coupons of one category (by name), or all categories with an empty name.",
+    inputSchema: {
+      type: "object",
+      properties: { category: { type: "string", description: "Category name as shown on the page; empty for all." } },
+      required: ["category"],
+    },
+    execute: ({ category }: { category: string }) =>
+      runWebMCPTool("filter_by_category", () => {
+        if (typeof category !== "string") throw new Error("category must be a string.");
+        if (!category) { setSelectedCat(null); return "Showing all categories."; }
+        const match = categories.filter((c) => c.name.toLowerCase() === category.toLowerCase());
+        if (match.length !== 1) throw new Error(`Unknown category; expected one of: ${categories.map((c) => c.name).join(", ")}.`);
+        setSelectedCat(match[0].id);
+        return "Category filter updated.";
+      }),
+  });
 
   return (
     <div className="min-h-screen bg-background">
